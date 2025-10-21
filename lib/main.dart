@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'config/theme.dart';
+import 'config/routes.dart'; // ✅ Importa tus rutas centralizadas
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'services/auth_service.dart';
@@ -12,6 +14,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Aquí va tu MaterialApp — no fuera de esta clase
     return MaterialApp(
       title: 'POS Mobile',
       debugShowCheckedModeBanner: false,
@@ -19,16 +22,20 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+
+      // ✅ La pantalla inicial (AuthWrapper decide login o dashboard)
       home: const AuthWrapper(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-      },
+
+      // ✅ Importa las rutas desde tu AppRoutes
+      routes: AppRoutes.routes,
+
+      // ✅ Manejador de rutas inexistentes
+      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }
 
-// Wrapper para verificar autenticación
+// ✅ Wrapper para verificar autenticación
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({Key? key}) : super(key: key);
 

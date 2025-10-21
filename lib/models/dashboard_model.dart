@@ -1,22 +1,49 @@
-import 'product_model.dart';
-import 'user_model.dart';
-import 'sale_model.dart';
+import './user_model.dart';
+/// Parse seguro de enteros desde cualquier tipo
+int _parseInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return int.tryParse(value.toString()) ?? 0;
+}
 
-class DashboardData {
+/// Parse seguro de doubles desde cualquier tipo
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return double.tryParse(value.toString()) ?? 0.0;
+}
+
+/// Parse seguro de booleanos
+bool _parseBool(dynamic value) {
+  if (value == null) return false;
+  if (value is bool) return value;
+  if (value is int) return value != 0;
+  if (value is String) {
+    final lower = value.toLowerCase();
+    return lower == 'true' || lower == '1' || lower == 'yes';
+  }
+  return false;
+}
+
+class DashboardSummary {
   final UserInfo userInfo;
   final SalesData todaySales;
   final SalesData weekSales;
   final SalesData monthSales;
   final List<TopProduct> topProducts;
-  final LowStockData lowStock;
+  final LowStockInfo lowStock;
   final InventorySummary inventorySummary;
   final PersonalStats personalStats;
   final List<RecentSale> recentSales;
-  final Comparison comparison;
+  final ComparisonData comparison;
   final List<EmployeeSales>? salesByEmployee;
-  final String timestamp;
+  final DateTime timestamp;
 
-  DashboardData({
+  DashboardSummary({
     required this.userInfo,
     required this.todaySales,
     required this.weekSales,
@@ -31,28 +58,28 @@ class DashboardData {
     required this.timestamp,
   });
 
-  factory DashboardData.fromJson(Map<String, dynamic> json) {
-    return DashboardData(
-      userInfo: UserInfo.fromJson(json['user_info']),
-      todaySales: SalesData.fromJson(json['today_sales']),
-      weekSales: SalesData.fromJson(json['week_sales']),
-      monthSales: SalesData.fromJson(json['month_sales']),
-      topProducts: (json['top_products'] as List<dynamic>)
-          .map((item) => TopProduct.fromJson(item))
+  factory DashboardSummary.fromJson(Map<String, dynamic> json) {
+    return DashboardSummary(
+      userInfo: UserInfo.fromJson(json['user_info'] ?? {}),
+      todaySales: SalesData.fromJson(json['today_sales'] ?? {}),
+      weekSales: SalesData.fromJson(json['week_sales'] ?? {}),
+      monthSales: SalesData.fromJson(json['month_sales'] ?? {}),
+      topProducts: (json['top_products'] as List<dynamic>? ?? [])
+          .map((item) => TopProduct.fromJson(item as Map<String, dynamic>))
           .toList(),
-      lowStock: LowStockData.fromJson(json['low_stock']),
-      inventorySummary: InventorySummary.fromJson(json['inventory_summary']),
-      personalStats: PersonalStats.fromJson(json['personal_stats']),
-      recentSales: (json['recent_sales'] as List<dynamic>)
-          .map((item) => RecentSale.fromJson(item))
+      lowStock: LowStockInfo.fromJson(json['low_stock'] ?? {}),
+      inventorySummary: InventorySummary.fromJson(json['inventory_summary'] ?? {}),
+      personalStats: PersonalStats.fromJson(json['personal_stats'] ?? {}),
+      recentSales: (json['recent_sales'] as List<dynamic>? ?? [])
+          .map((item) => RecentSale.fromJson(item as Map<String, dynamic>))
           .toList(),
-      comparison: Comparison.fromJson(json['comparison']),
+      comparison: ComparisonData.fromJson(json['comparison'] ?? {}),
       salesByEmployee: json['sales_by_employee'] != null
           ? (json['sales_by_employee'] as List<dynamic>)
-              .map((item) => EmployeeSales.fromJson(item))
+              .map((item) => EmployeeSales.fromJson(item as Map<String, dynamic>))
               .toList()
           : null,
-      timestamp: json['timestamp'],
+      timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 }
@@ -72,10 +99,10 @@ class UserInfo {
 
   factory UserInfo.fromJson(Map<String, dynamic> json) {
     return UserInfo(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      role: RoleInfo.fromJson(json['role']),
+      id: _parseInt(json['id']),
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      role: RoleInfo.fromJson(json['role'] ?? {}),
     );
   }
 }
@@ -84,41 +111,21 @@ class RoleInfo {
   final String role;
   final bool canManageProducts;
   final bool canManageEmployees;
-  final Manager? manager;
   final int? employeesCount;
 
   RoleInfo({
     required this.role,
     required this.canManageProducts,
     required this.canManageEmployees,
-    this.manager,
     this.employeesCount,
   });
 
   factory RoleInfo.fromJson(Map<String, dynamic> json) {
     return RoleInfo(
-      role: json['role'],
-      canManageProducts: json['can_manage_products'],
-      canManageEmployees: json['can_manage_employees'],
-      manager: json['manager'] != null ? Manager.fromJson(json['manager']) : null,
-      employeesCount: json['employees_count'],
-    );
-  }
-
-  bool get isAdmin => role == 'admin';
-  bool get isEmpleado => role == 'empleado';
-}
-
-class Manager {
-  final int id;
-  final String username;
-
-  Manager({required this.id, required this.username});
-
-  factory Manager.fromJson(Map<String, dynamic> json) {
-    return Manager(
-      id: json['id'],
-      username: json['username'],
+      role: json['role']?.toString() ?? '',
+      canManageProducts: _parseBool(json['can_manage_products']),
+      canManageEmployees: _parseBool(json['can_manage_employees']),
+      employeesCount: json['employees_count'] != null ? _parseInt(json['employees_count']) : null,
     );
   }
 }
@@ -134,16 +141,9 @@ class SalesData {
 
   factory SalesData.fromJson(Map<String, dynamic> json) {
     return SalesData(
-      count: json['count'] ?? 0,
+      count: _parseInt(json['count']),
       total: _parseDouble(json['total']),
     );
-  }
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
   }
 }
 
@@ -164,38 +164,30 @@ class TopProduct {
 
   factory TopProduct.fromJson(Map<String, dynamic> json) {
     return TopProduct(
-      productId: json['product_id'],
-      productName: json['product_name'],
-      productCode: json['product_code'],
-      quantitySold: json['quantity_sold'],
+      productId: _parseInt(json['product_id']),
+      productName: json['product_name']?.toString() ?? '',
+      productCode: json['product_code']?.toString() ?? '',
+      quantitySold: _parseInt(json['quantity_sold']),
       totalAmount: _parseDouble(json['total_amount']),
     );
   }
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
-  }
 }
 
-class LowStockData {
+class LowStockInfo {
   final int count;
   final List<LowStockProduct> products;
 
-  LowStockData({
+  LowStockInfo({
     required this.count,
     required this.products,
   });
 
-  factory LowStockData.fromJson(Map<String, dynamic> json) {
-    return LowStockData(
-      count: json['count'] ?? 0,
-      products: (json['products'] as List<dynamic>?)
-              ?.map((item) => LowStockProduct.fromJson(item))
-              .toList() ??
-          [],
+  factory LowStockInfo.fromJson(Map<String, dynamic> json) {
+    return LowStockInfo(
+      count: _parseInt(json['count']),
+      products: (json['products'] as List<dynamic>? ?? [])
+          .map((item) => LowStockProduct.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -221,23 +213,14 @@ class LowStockProduct {
 
   factory LowStockProduct.fromJson(Map<String, dynamic> json) {
     return LowStockProduct(
-      id: json['id'],
-      name: json['name'],
-      code: json['code'] ?? '',
-      stock: json['stock'],
-      category: json['category'] ?? 'Sin categoría',
-      status: json['status'],
+      id: _parseInt(json['id']),
+      name: json['name']?.toString() ?? '',
+      code: json['code']?.toString() ?? '',
+      stock: _parseInt(json['stock']),
+      category: json['category']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
       price: _parseDouble(json['price']),
     );
-  }
-
-  bool get isCritical => status == 'critical';
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
   }
 }
 
@@ -255,16 +238,9 @@ class InventorySummary {
   factory InventorySummary.fromJson(Map<String, dynamic> json) {
     return InventorySummary(
       totalValue: _parseDouble(json['total_value']),
-      totalProducts: json['total_products'] ?? 0,
-      lowStockCount: json['low_stock_count'] ?? 0,
+      totalProducts: _parseInt(json['total_products']),
+      lowStockCount: _parseInt(json['low_stock_count']),
     );
-  }
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
   }
 }
 
@@ -281,25 +257,18 @@ class PersonalStats {
 
   factory PersonalStats.fromJson(Map<String, dynamic> json) {
     return PersonalStats(
-      salesLast30Days: json['sales_last_30_days'] ?? 0,
+      salesLast30Days: _parseInt(json['sales_last_30_days']),
       totalLast30Days: _parseDouble(json['total_last_30_days']),
       averageSale: _parseDouble(json['average_sale']),
     );
-  }
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
   }
 }
 
 class RecentSale {
   final int id;
-  final String date;
+  final DateTime date;
   final double totalPrice;
-  final SimpleUser user;
+  final UserBasic user;
   final int itemsCount;
 
   RecentSale({
@@ -312,92 +281,60 @@ class RecentSale {
 
   factory RecentSale.fromJson(Map<String, dynamic> json) {
     return RecentSale(
-      id: json['id'],
-      date: json['date'],
+      id: _parseInt(json['id']),
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
       totalPrice: _parseDouble(json['total_price']),
-      user: SimpleUser.fromJson(json['user']),
-      itemsCount: json['items_count'] ?? 0,
-    );
-  }
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
-  }
-}
-
-class SimpleUser {
-  final int id;
-  final String username;
-
-  SimpleUser({required this.id, required this.username});
-
-  factory SimpleUser.fromJson(Map<String, dynamic> json) {
-    return SimpleUser(
-      id: json['id'],
-      username: json['username'],
+      user: UserBasic.fromJson(json['user'] ?? {}),
+      itemsCount: _parseInt(json['items_count']),
     );
   }
 }
 
-class Comparison {
+class ComparisonData {
   final double currentMonthTotal;
   final double previousMonthTotal;
   final double percentageChange;
   final String trend;
 
-  Comparison({
+  ComparisonData({
     required this.currentMonthTotal,
     required this.previousMonthTotal,
     required this.percentageChange,
     required this.trend,
   });
 
-  factory Comparison.fromJson(Map<String, dynamic> json) {
-    return Comparison(
+  factory ComparisonData.fromJson(Map<String, dynamic> json) {
+    return ComparisonData(
       currentMonthTotal: _parseDouble(json['current_month_total']),
       previousMonthTotal: _parseDouble(json['previous_month_total']),
       percentageChange: _parseDouble(json['percentage_change']),
-      trend: json['trend'],
+      trend: json['trend']?.toString() ?? 'stable',
     );
-  }
-
-  bool get isPositive => trend == 'up';
-  bool get isNegative => trend == 'down';
-  bool get isStable => trend == 'stable';
-
-  static double _parseDouble(dynamic value) {
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
   }
 }
 
 class EmployeeSales {
   final int employeeId;
   final String employeeName;
-  final String? employeeEmail;
+  final String employeeEmail;
   final SalesData today;
   final SalesData month;
 
   EmployeeSales({
     required this.employeeId,
     required this.employeeName,
-    this.employeeEmail,
+    required this.employeeEmail,
     required this.today,
     required this.month,
   });
 
   factory EmployeeSales.fromJson(Map<String, dynamic> json) {
     return EmployeeSales(
-      employeeId: json['employee_id'],
-      employeeName: json['employee_name'],
-      employeeEmail: json['employee_email'],
-      today: SalesData.fromJson(json['today']),
-      month: SalesData.fromJson(json['month']),
+      employeeId: _parseInt(json['employee_id']),
+      employeeName: json['employee_name']?.toString() ?? '',
+      employeeEmail: json['employee_email']?.toString() ?? '',
+      today: SalesData.fromJson(json['today'] ?? {}),
+      month: SalesData.fromJson(json['month'] ?? {}),
     );
   }
 }
