@@ -21,10 +21,14 @@ class SaleService {
         body['notes'] = notes;
       }
 
+      print('🔍 Creating sale with body: $body');
+
       final response = await _apiService.post(
         '/sales/create-from-scan/',
         body: body,
       );
+
+      print('✅ Sale creation response: $response');
 
       if (response['success'] == true) {
         return Sale.fromJson(response['sale']);
@@ -32,6 +36,7 @@ class SaleService {
 
       throw Exception(response['error'] ?? 'Error al crear venta');
     } catch (e) {
+      print('❌ Error creating sale: $e');
       throw Exception('Error al crear venta: $e');
     }
   }
@@ -51,22 +56,74 @@ class SaleService {
         queryParams['end_date'] = endDate;
       }
 
+      print('🔍 Fetching sales with params: $queryParams');
+
       final response = await _apiService.get(
         '/sales/my-sales/',
-        queryParams: queryParams,
+        queryParams: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      // El backend puede retornar con paginación o directo
-      if (response is Map && response['results'] is List) {
-        return (response['results'] as List)
-            .map((json) => Sale.fromJson(json))
-            .toList();
-      } else if (response is List) {
-        return response.map((json) => Sale.fromJson(json)).toList();
+      print('📦 Sales response type: ${response.runtimeType}');
+      print('📦 Sales response: $response');
+
+      // Manejar respuesta paginada
+      if (response is Map<String, dynamic>) {
+        if (response.containsKey('results')) {
+          final results = response['results'];
+          print('📋 Results found: ${results.runtimeType}');
+          
+          if (results is List) {
+            return results.map((json) {
+              if (json is Map<String, dynamic>) {
+                return Sale.fromJson(json);
+              } else if (json is Map) {
+                return Sale.fromJson(Map<String, dynamic>.from(json));
+              } else {
+                throw Exception('Invalid sale item type: ${json.runtimeType}');
+              }
+            }).toList();
+          }
+        } else if (response.containsKey('data')) {
+          final data = response['data'];
+          if (data is List) {
+            return data.map((json) {
+              if (json is Map<String, dynamic>) {
+                return Sale.fromJson(json);
+              } else if (json is Map) {
+                return Sale.fromJson(Map<String, dynamic>.from(json));
+              } else {
+                throw Exception('Invalid sale item type: ${json.runtimeType}');
+              }
+            }).toList();
+          }
+        }
+      } 
+      // Manejar lista directa
+      else if (response is List) {
+        print('📋 Response is direct list with ${response.length} items');
+        if (response.isEmpty) {
+          return [];
+        }
+        
+        print('First item type: ${response.first.runtimeType}');
+        print('First item: ${response.first}');
+        
+        return response.map((json) {
+          if (json is Map<String, dynamic>) {
+            return Sale.fromJson(json);
+          } else if (json is Map) {
+            return Sale.fromJson(Map<String, dynamic>.from(json));
+          } else {
+            throw Exception('Invalid sale item type: ${json.runtimeType}');
+          }
+        }).toList();
       }
 
+      print('⚠️ Unexpected response format');
       throw Exception('Formato de respuesta inválido');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Error fetching sales: $e');
+      print('Stack trace: $stackTrace');
       throw Exception('Error al obtener historial de ventas: $e');
     }
   }
@@ -93,7 +150,12 @@ class SaleService {
         '/sales/my-sales/',
         queryParams: queryParams,
       );
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        return {'results': response};
+      }
     } catch (e) {
       throw Exception('Error al obtener historial de ventas: $e');
     }
@@ -121,7 +183,12 @@ class SaleService {
         '/sales/',
         queryParams: queryParams,
       );
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        return {'results': response};
+      }
     } catch (e) {
       throw Exception('Error al obtener ventas: $e');
     }
@@ -131,7 +198,14 @@ class SaleService {
   Future<Sale> getById(int saleId) async {
     try {
       final response = await _apiService.get('/sales/$saleId/');
-      return Sale.fromJson(response);
+      
+      if (response is Map<String, dynamic>) {
+        return Sale.fromJson(response);
+      } else if (response is Map) {
+        return Sale.fromJson(Map<String, dynamic>.from(response));
+      }
+      
+      throw Exception('Formato de respuesta inválido');
     } catch (e) {
       throw Exception('Error al obtener venta: $e');
     }
@@ -141,7 +215,14 @@ class SaleService {
   Future<Map<String, dynamic>> getByIdRaw(int saleId) async {
     try {
       final response = await _apiService.get('/sales/$saleId/');
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      
+      throw Exception('Formato de respuesta inválido');
     } catch (e) {
       throw Exception('Error al obtener venta: $e');
     }
@@ -151,7 +232,14 @@ class SaleService {
   Future<Map<String, dynamic>> cancelSale(int saleId) async {
     try {
       final response = await _apiService.post('/sales/$saleId/cancel/');
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      
+      return {'success': true};
     } catch (e) {
       throw Exception('Error al cancelar venta: $e');
     }
@@ -161,7 +249,14 @@ class SaleService {
   Future<Map<String, dynamic>> getSummary() async {
     try {
       final response = await _apiService.get('/sales/summary/');
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      
+      throw Exception('Formato de respuesta inválido');
     } catch (e) {
       throw Exception('Error al obtener resumen de ventas: $e');
     }
@@ -175,7 +270,14 @@ class SaleService {
         '/sales/by_period/',
         queryParams: {'period': period},
       );
-      return response as List<dynamic>;
+      
+      if (response is List) {
+        return response;
+      } else if (response is Map && response['results'] is List) {
+        return response['results'] as List;
+      }
+      
+      return [];
     } catch (e) {
       throw Exception('Error al obtener ventas por período: $e');
     }
@@ -204,7 +306,14 @@ class SaleService {
         '/sales/by-user/$userId/',
         queryParams: queryParams,
       );
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      
+      return {'results': []};
     } catch (e) {
       throw Exception('Error al obtener ventas del usuario: $e');
     }
@@ -219,7 +328,14 @@ class SaleService {
         '/products/validate-products/',
         body: {'items': items},
       );
-      return response;
+      
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      
+      return {'success': false, 'error': 'Formato de respuesta inválido'};
     } catch (e) {
       throw Exception('Error al validar productos: $e');
     }

@@ -1,5 +1,6 @@
 import 'product_model.dart';
 import 'user_model.dart';
+
 /// Parse seguro de enteros desde cualquier tipo
 int _parseInt(dynamic value) {
   if (value == null) return 0;
@@ -46,11 +47,26 @@ class SaleItem {
   });
 
   factory SaleItem.fromJson(Map<String, dynamic> json) {
+    // Manejar product como objeto o solo ID
+    ProductBasic product;
+    
+    if (json['product'] is Map) {
+      // Si viene como objeto completo
+      product = ProductBasic.fromJson(json['product'] as Map<String, dynamic>);
+    } else {
+      // Si solo viene el ID, construir objeto básico
+      product = ProductBasic(
+        id: _parseInt(json['product']),
+        code: json['product_code']?.toString() ?? '',
+        name: json['product_name']?.toString() ?? '',
+      );
+    }
+
     return SaleItem(
       id: _parseInt(json['id']),
-      product: ProductBasic.fromJson(json['product'] ?? {}),
+      product: product,
       quantity: _parseInt(json['quantity']),
-      price: _parseDouble(json['price']),
+      price: _parseDouble(json['price_unit'] ?? json['price']),
       subtotal: _parseDouble(json['subtotal']),
     );
   }
@@ -96,16 +112,43 @@ class Sale {
   int get itemsCount => items.fold(0, (sum, item) => sum + item.quantity);
 
   factory Sale.fromJson(Map<String, dynamic> json) {
+    // Manejar user como objeto o solo ID
+    UserBasic user;
+    
+    if (json['user'] is Map) {
+      // Si viene como objeto completo
+      user = UserBasic.fromJson(json['user'] as Map<String, dynamic>);
+    } else {
+      // Si solo viene el ID, construir objeto básico
+      user = UserBasic(
+        id: _parseInt(json['user']),
+        username: json['user_name']?.toString() ?? 'Usuario #${json['user']}',
+      );
+    }
+
+    // Parsear items
+    List<SaleItem> items = [];
+    if (json['items'] is List) {
+      items = (json['items'] as List<dynamic>)
+          .map((item) {
+            if (item is Map<String, dynamic>) {
+              return SaleItem.fromJson(item);
+            } else if (item is Map) {
+              return SaleItem.fromJson(Map<String, dynamic>.from(item));
+            } else {
+              throw Exception('Invalid sale item type: ${item.runtimeType}');
+            }
+          })
+          .toList();
+    }
+
     return Sale(
       id: _parseInt(json['id']),
       date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
       totalPrice: _parseDouble(json['total_price']),
-      paymentMethod: json['payment_method']?.toString() ?? '',
-      user: UserBasic.fromJson(json['user'] ?? {}),
-      items: (json['items'] as List<dynamic>?)
-              ?.map((item) => SaleItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
+      paymentMethod: json['payment_method']?.toString() ?? 'efectivo',
+      user: user,
+      items: items,
       isCancelled: _parseBool(json['is_cancelled']),
     );
   }
