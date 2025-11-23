@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:pos_flutter_app/config/routes.dart';
+
 import 'drawe.dart';
 
 class MainScaffold extends StatelessWidget {
   final String title;
-  final int currentIndex;       // índice activo del bottom nav
+  final int currentIndex; // índice activo del bottom nav
   final Widget body;
+  final List<Widget>? actions;
 
   const MainScaffold({
     Key? key,
     required this.title,
     required this.currentIndex,
     required this.body,
+    this.actions,
   }) : super(key: key);
 
   void _onNavTap(BuildContext context, int index) {
@@ -19,16 +22,19 @@ class MainScaffold extends StatelessWidget {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, '/products');
+        Navigator.pushReplacementNamed(context, AppRoutes.products);
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, '/sales/create'); // venta rápida
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.createSale,
+        ); // venta rápida
         break;
       case 3:
-        Navigator.pushReplacementNamed(context, '/sales'); // historial
+        Navigator.pushReplacementNamed(context, AppRoutes.sales); // historial
         break;
     }
   }
@@ -39,6 +45,7 @@ class MainScaffold extends StatelessWidget {
       drawer: MainDrawer(),
       appBar: AppBar(
         title: Text(title),
+        actions: actions,
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),

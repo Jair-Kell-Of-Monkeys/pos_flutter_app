@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../config/theme.dart';
 import '../../models/dashboard_model.dart';
-import '../../services/dashboard_service.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/loading_widget.dart';
+import '../../services/dashboard_service.dart';
 import '../../widgets/custom_card.dart';
+import '../../widgets/loading_widget.dart';
 import '../../widgets/main_scaffold.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -86,24 +87,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return MainScaffold(
-    title: 'Dashboard',
-    currentIndex: 0, // tab activo
-    body: _isLoading
-        ? const LoadingWidget(message: 'Cargando dashboard...')
-        : _errorMessage != null
-            ? ErrorWidgetCustom(
-                message: _errorMessage!,
-                onRetry: _loadDashboard,
-              )
-            : RefreshIndicator(
-                onRefresh: _loadDashboard,
-                child: _buildDashboardContent(),
-              ),
-  );
-}
+  Widget build(BuildContext context) {
+    return MainScaffold(
+      title: 'Dashboard',
+      currentIndex: 0, // tab activo
 
+      body: _isLoading
+          ? const LoadingWidget(message: 'Cargando dashboard...')
+          : _errorMessage != null
+          ? ErrorWidgetCustom(message: _errorMessage!, onRetry: _loadDashboard)
+          : RefreshIndicator(
+              onRefresh: _loadDashboard,
+              child: _buildDashboardContent(),
+            ),
+    );
+  }
 
   Widget _buildDashboardContent() {
     if (_dashboard == null) {

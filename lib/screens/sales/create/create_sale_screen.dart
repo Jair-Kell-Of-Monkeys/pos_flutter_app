@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../controllers/cart_controller.dart';
-import '../../models/product_model.dart';
-import '../../services/product_service.dart';
-import '../../services/sale_service.dart';
-import '../../config/theme.dart';
-import '../../widgets/main_scaffold.dart';
+import '../../../config/theme.dart';
+import '../../../controllers/cart_controller.dart';
+import '../../../models/product_model.dart';
+import '../../../services/product_service.dart';
+import '../../../services/sale_service.dart';
+import '../../../widgets/main_scaffold.dart';
 
 class QuickSaleScreen extends StatelessWidget {
   const QuickSaleScreen({Key? key}) : super(key: key);
@@ -136,9 +136,7 @@ class _QuickSaleViewState extends State<_QuickSaleView> {
       padding: const EdgeInsets.all(16),
       child: Card(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: AppTheme.cardColor,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -306,8 +304,7 @@ class _QuickSaleViewState extends State<_QuickSaleView> {
                                 foregroundColor: AppTheme.errorColor,
                                 padding: EdgeInsets.zero,
                                 minimumSize: const Size(0, 0),
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: const Text('Quitar'),
                             ),
@@ -330,15 +327,14 @@ class _QuickSaleViewState extends State<_QuickSaleView> {
                               ),
                               actions: [
                                 TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(),
+                                  onPressed: () => Navigator.of(context).pop(),
                                   child: const Text('Cancelar'),
                                 ),
                                 TextButton(
                                   onPressed: () {
                                     final q =
                                         int.tryParse(controller.text) ??
-                                            item.quantity;
+                                        item.quantity;
                                     cart.updateQuantity(item, q);
                                     Navigator.of(context).pop();
                                   },

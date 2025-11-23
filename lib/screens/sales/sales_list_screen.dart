@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../services/sale_service.dart';
-import '../../models/sale_model.dart';
-import '../../widgets/loading_widget.dart';
-import '../../widgets/error_display_widget.dart';
-import '../../widgets/empty_widget.dart';
+import 'package:pos_flutter_app/widgets/main_scaffold.dart';
+
 import '../../config/theme.dart';
+import '../../models/sale_model.dart';
+import '../../services/sale_service.dart';
+import '../../widgets/empty_widget.dart';
+import '../../widgets/error_display_widget.dart';
+import '../../widgets/loading_widget.dart';
 
 class SalesListScreen extends StatefulWidget {
   const SalesListScreen({Key? key}) : super(key: key);
@@ -34,16 +36,16 @@ class _SalesListScreenState extends State<SalesListScreen> {
     try {
       // Usar getMySalesList() que retorna List<Sale>
       final sales = await _saleService.getMySalesList();
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _sales = sales;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _errorMessage = 'Error al cargar ventas: $e';
         _isLoading = false;
@@ -53,45 +55,38 @@ class _SalesListScreenState extends State<SalesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Ventas'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadSales,
-            tooltip: 'Actualizar',
-          ),
-        ],
-      ),
+    return MainScaffold(
+      title: 'Mis Ventas',
+      currentIndex: 0, // tab activo
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: _loadSales,
+          tooltip: 'Actualizar',
+        ),
+      ],
       body: _isLoading
           ? const LoadingWidget(message: 'Cargando ventas...')
           : _errorMessage != null
-              ? ErrorDisplayWidget(
-                  message: _errorMessage!,
-                  onRetry: _loadSales,
-                )
-              : _sales.isEmpty
-                  ? const EmptyWidget(
-                      message: 'No tienes ventas registradas aún',
-                      icon: Icons.receipt_long,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadSales,
-                      child: _buildSalesList(),
-                    ),
+          ? ErrorDisplayWidget(message: _errorMessage!, onRetry: _loadSales)
+          : _sales.isEmpty
+          ? const EmptyWidget(
+              message: 'No tienes ventas registradas aún',
+              icon: Icons.receipt_long,
+            )
+          : RefreshIndicator(onRefresh: _loadSales, child: _buildSalesList()),
     );
   }
 
   Widget _buildSalesList() {
     // Calcular total de todas las ventas
     final totalAmount = _sales.fold<double>(
-      0, 
-      (sum, sale) => sum + sale.totalPrice
+      0,
+      (sum, sale) => sum + sale.totalPrice,
     );
     final totalItems = _sales.fold<int>(
-      0, 
-      (sum, sale) => sum + sale.itemsCount
+      0,
+      (sum, sale) => sum + sale.itemsCount,
     );
 
     return Column(
@@ -108,11 +103,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
                 '${_sales.length}',
                 Icons.shopping_cart,
               ),
-              _buildSummaryItem(
-                'Productos',
-                '$totalItems',
-                Icons.inventory,
-              ),
+              _buildSummaryItem('Productos', '$totalItems', Icons.inventory),
               _buildSummaryItem(
                 'Total',
                 '\$${totalAmount.toStringAsFixed(2)}',
@@ -121,7 +112,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
             ],
           ),
         ),
-        
+
         // Lista de ventas
         Expanded(
           child: ListView.builder(
@@ -150,13 +141,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
             color: AppTheme.primaryColor,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
@@ -165,9 +150,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _showSaleDetail(sale),
         borderRadius: BorderRadius.circular(12),
@@ -249,9 +232,9 @@ class _SalesListScreenState extends State<SalesListScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Información adicional
               Row(
                 children: [
@@ -263,24 +246,14 @@ class _SalesListScreenState extends State<SalesListScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '${sale.itemsCount} ${sale.itemsCount == 1 ? 'producto' : 'productos'}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(width: 16),
-                  Icon(
-                    Icons.access_time,
-                    size: 16,
-                    color: Colors.grey[600],
-                  ),
+                  Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 4),
                   Text(
                     _formatTime(sale.date),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -352,7 +325,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Título
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -370,19 +343,16 @@ class _SalesListScreenState extends State<SalesListScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               Text(
                 '${_formatDate(sale.date)} a las ${_formatTime(sale.date)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              
+
               const Divider(height: 30),
-              
+
               // Detalles
               Expanded(
                 child: ListView(
@@ -397,13 +367,10 @@ class _SalesListScreenState extends State<SalesListScreen> {
                       'Método de pago',
                       _getPaymentMethodText(sale.paymentMethod),
                     ),
-                    _buildDetailRow(
-                      'Productos',
-                      '${sale.itemsCount}',
-                    ),
-                    
+                    _buildDetailRow('Productos', '${sale.itemsCount}'),
+
                     const SizedBox(height: 20),
-                    
+
                     // Botón para ver más detalles
                     ElevatedButton.icon(
                       onPressed: () {
@@ -431,7 +398,11 @@ class _SalesListScreenState extends State<SalesListScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isHighlighted = false}) {
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isHighlighted = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

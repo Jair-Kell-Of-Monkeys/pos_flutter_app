@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/registro_screen.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/products/products_list_screen.dart';
+import '../screens/reports/reports_screen.dart';
+import '../screens/sales/create/create_sale_screen.dart';
 // import '../screens/products/product_detail_screen.dart';
 import '../screens/sales/sales_list_screen.dart';
-import '../screens/sales/create_sale_screen.dart';
-import '../screens/reports/reports_screen.dart';
 import '../screens/scanner/scanner_screen.dart';
 
 class AppRoutes {
@@ -16,7 +17,7 @@ class AppRoutes {
   static const String dashboard = '/dashboard';
   static const String products = '/products';
   static const String sales = '/sales';
-  static const String createSale = '/create-sale';
+  static const String createSale = '/sales/create';
   static const String reports = '/reports';
   static const String scanner = '/scanner';
 
@@ -30,7 +31,6 @@ class AppRoutes {
     createSale: (context) => const QuickSaleScreen(),
     reports: (context) => const ReportsScreen(),
     scanner: (context) => const ScannerScreen(),
-  
   };
 
   // Ruta inicial
@@ -58,7 +58,16 @@ class AppRoutes {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.dashboard,
+                    );
+                  }
+                },
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Volver'),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_flutter_app/widgets/main_scaffold.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({Key? key}) : super(key: key);
@@ -9,21 +10,10 @@ class ReportsScreen extends StatelessWidget {
     const Color azulClaro = Color(0xFF5DA9E9);
     const Color azulFuerte = Color.fromARGB(255, 1, 96, 221);
     const Color verdeSuave = Color(0xFFE5F4E3);
-    const Color blanco = Color(0xFFFFFFFF);
 
-    return Scaffold(
-      backgroundColor: blanco,
-      appBar: AppBar(
-        backgroundColor: azulFuerte,
-        elevation: 0,
-        title: const Text(
-          "Reportes",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
+    return MainScaffold(
+      title: 'Reportes',
+      currentIndex: 0, // tab activo
 
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -127,12 +117,9 @@ class ReportsScreen extends StatelessWidget {
                       color: Colors.black87,
                     ),
                   ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.black54),
-                  ),
+                  Text(subtitle, style: const TextStyle(color: Colors.black54)),
                 ],
-              )
+              ),
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:pos_flutter_app/widgets/main_scaffold.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({Key? key}) : super(key: key);
@@ -13,10 +14,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Escáner QR"),
-      ),
+    return MainScaffold(
+      title: "Escáner QR",
+      currentIndex: 0, // tab activo
       body: Stack(
         children: [
           // Cámara del escáner
@@ -32,7 +32,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
               });
 
               if (value != null) {
-                Navigator.pop(context, value); // Regresa el valor a la pantalla anterior
+                Navigator.pop(
+                  context,
+                  value,
+                ); // Regresa el valor a la pantalla anterior
               }
             },
           ),
@@ -51,12 +54,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 10,
-                        color: Colors.black,
-                      ),
-                    ],
+                    shadows: [Shadow(blurRadius: 10, color: Colors.black)],
                   ),
                 ),
               ],

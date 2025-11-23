@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pos_flutter_app/widgets/main_scaffold.dart';
+
 import '../../config/theme.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
@@ -7,10 +9,8 @@ import '../../widgets/loading_widget.dart';
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
 
-  const ProductDetailScreen({
-    Key? key,
-    required this.productId,
-  }) : super(key: key);
+  const ProductDetailScreen({Key? key, required this.productId})
+    : super(key: key);
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -18,7 +18,7 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final ProductService _productService = ProductService();
-  
+
   Product? _product;
   bool _isLoading = true;
   String? _errorMessage;
@@ -37,16 +37,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     try {
       final product = await _productService.getProductById(widget.productId);
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _product = product;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _errorMessage = 'Error al cargar producto: $e';
         _isLoading = false;
@@ -56,27 +56,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle del Producto'),
-      ),
-       body: _isLoading
+    return MainScaffold(
+      title: 'Detalle del Producto',
+      currentIndex: 0, // tab activo
+      body: _isLoading
           ? const LoadingWidget(message: 'Cargando producto...')
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_errorMessage!, style: AppTheme.bodyLarge),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _loadProduct,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_errorMessage!, style: AppTheme.bodyLarge),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _loadProduct,
+                    child: const Text('Reintentar'),
                   ),
-                )
-              : _buildProductDetail(),
+                ],
+              ),
+            )
+          : _buildProductDetail(),
     );
   }
 
@@ -91,12 +90,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Nombre del producto
-          Text(
-            _product!.name,
-            style: AppTheme.heading1,
-          ),
+          Text(_product!.name, style: AppTheme.heading1),
           const SizedBox(height: 8),
-          
+
           // Código
           Text(
             'Código: ${_product!.code}',
@@ -105,7 +101,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Precio y Stock
           Row(
             children: [
@@ -129,18 +125,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // Descripción
           if (_product!.description != null) ...[
             const Text('Descripción', style: AppTheme.heading3),
             const SizedBox(height: 8),
-            Text(
-              _product!.description!,
-              style: AppTheme.bodyMedium,
-            ),
+            Text(_product!.description!, style: AppTheme.bodyMedium),
             const SizedBox(height: 24),
           ],
-          
+
           // Categoría
           if (_product!.category != null) ...[
             const Text('Categoría', style: AppTheme.heading3),
@@ -171,15 +164,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Icon(icon, color: color, size: 32),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: AppTheme.caption,
-          ),
+          Text(label, style: AppTheme.caption),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTheme.heading2.copyWith(color: color),
-          ),
+          Text(value, style: AppTheme.heading2.copyWith(color: color)),
         ],
       ),
     );
