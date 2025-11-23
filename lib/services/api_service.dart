@@ -171,7 +171,7 @@ class ApiService {
         statusCode: statusCode,
         message: errorBody['error'] ?? 
                  errorBody['detail'] ?? 
-                 'Error ${statusCode}',
+                 'Error $statusCode',
         errorCode: errorBody['error_code'],
       );
     }

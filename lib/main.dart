@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'config/theme.dart';
 import 'config/routes.dart'; // ✅ Importa tus rutas centralizadas
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';

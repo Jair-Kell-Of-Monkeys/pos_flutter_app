@@ -5,6 +5,7 @@ import '../../services/dashboard_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/custom_card.dart';
+import '../../widgets/main_scaffold.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardService _dashboardService = DashboardService();
   final AuthService _authService = AuthService();
-  
+
   DashboardSummary? _dashboard;
   bool _isLoading = true;
   String? _errorMessage;
@@ -35,16 +36,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final dashboard = await _dashboardService.getDashboardSummary();
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _dashboard = dashboard;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _errorMessage = 'Error al cargar el dashboard: $e';
         _isLoading = false;
@@ -53,11 +54,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _logout() async {
+    // 👇 PRIMERO cerrar el Drawer
+    Navigator.pop(context);
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+        content: const Text('¿Deseas cerrar sesión?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -73,75 +77,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (confirm == true) {
       await _authService.logout();
+
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/');
+
+      // 👇 REGRESA AL LOGIN Y LIMPIA HISTORIAL
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadDashboard,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const LoadingWidget(message: 'Cargando dashboard...')
-          : _errorMessage != null
-              ? ErrorWidget(
-                  message: _errorMessage!,
-                  onRetry: _loadDashboard,
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadDashboard,
-                  child: _buildDashboardContent(),
-                ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) {
-          // TODO: Implementar navegación entre pantallas
-          switch (index) {
-            case 0:
-              // Dashboard (ya estamos aquí)
-              break;
-            case 1:
-              Navigator.pushNamed(context, '/products');
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/sales');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Productos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_shopping_cart),
-            label: 'Nueva Venta',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Ventas',
-          ),
-        ],
-      ),
-    );
-  }
+Widget build(BuildContext context) {
+  return MainScaffold(
+    title: 'Dashboard',
+    currentIndex: 0, // tab activo
+    body: _isLoading
+        ? const LoadingWidget(message: 'Cargando dashboard...')
+        : _errorMessage != null
+            ? ErrorWidgetCustom(
+                message: _errorMessage!,
+                onRetry: _loadDashboard,
+              )
+            : RefreshIndicator(
+                onRefresh: _loadDashboard,
+                child: _buildDashboardContent(),
+              ),
+  );
+}
+
 
   Widget _buildDashboardContent() {
     if (_dashboard == null) {
@@ -151,11 +113,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Saludo al usuario
         _buildUserGreeting(),
         const SizedBox(height: 24),
-        
-        // Ventas de hoy
+
         _buildSalesCard(
           title: 'Ventas de Hoy',
           count: _dashboard!.todaySales.count,
@@ -163,8 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: Icons.today,
           color: AppTheme.successColor,
         ),
-        
-        // Ventas de la semana
+
         _buildSalesCard(
           title: 'Ventas de la Semana',
           count: _dashboard!.weekSales.count,
@@ -172,8 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: Icons.calendar_today,
           color: AppTheme.primaryColor,
         ),
-        
-        // Ventas del mes
+
         _buildSalesCard(
           title: 'Ventas del Mes',
           count: _dashboard!.monthSales.count,
@@ -181,16 +139,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: Icons.calendar_month,
           color: AppTheme.accentColor,
         ),
-        
+
         const SizedBox(height: 24),
-        
-        // Productos con stock bajo
+
         if (_dashboard!.lowStock.count > 0) _buildLowStockAlert(),
-        
-        // Top productos
         if (_dashboard!.topProducts.isNotEmpty) _buildTopProducts(),
-        
-        // Ventas recientes
         if (_dashboard!.recentSales.isNotEmpty) _buildRecentSales(),
       ],
     );
@@ -220,10 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 const Text(
                   '¡Hola!',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 Text(
                   _dashboard!.userInfo.username,
@@ -234,13 +184,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  _dashboard!.userInfo.role.role == 'admin' 
-                      ? 'Administrador' 
+                  _dashboard!.userInfo.role.role == 'admin'
+                      ? 'Administrador'
                       : 'Empleado',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
                 ),
               ],
             ),
@@ -297,13 +244,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.warning, color: AppTheme.warningColor),
-              const SizedBox(width: 8),
+              Icon(Icons.warning, color: AppTheme.warningColor),
+              SizedBox(width: 8),
               Text(
                 'Stock Bajo',
-                style: AppTheme.heading3.copyWith(
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                   color: AppTheme.warningColor,
                 ),
               ),
@@ -323,11 +272,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text('Top Productos', style: AppTheme.heading3),
         ),
-        ..._dashboard!.topProducts.take(5).map(
+        ..._dashboard!.topProducts
+            .take(5)
+            .map(
               (product) => CustomCard(
                 child: Row(
                   children: [
@@ -350,7 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      '\${product.totalAmount.toStringAsFixed(2)}',
+                      '\$${product.totalAmount.toStringAsFixed(2)}',
                       style: AppTheme.heading3.copyWith(
                         color: AppTheme.successColor,
                       ),
@@ -367,48 +318,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text('Ventas Recientes', style: AppTheme.heading3),
         ),
         ..._dashboard!.recentSales.map(
-              (sale) => CustomCard(
-                onTap: () {
-                  // TODO: Navegar al detalle de la venta
-                  Navigator.pushNamed(context, '/sales');
-                },
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Venta #${sale.id}',
-                            style: AppTheme.bodyLarge.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${sale.itemsCount} productos - ${sale.user.username}',
-                            style: AppTheme.caption,
-                          ),
-                          Text(
-                            _formatDate(sale.date),
-                            style: AppTheme.caption,
-                          ),
-                        ],
+          (sale) => CustomCard(
+            onTap: () => Navigator.pushNamed(context, '/sales'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Venta #${sale.id}',
+                        style: AppTheme.bodyLarge.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '\${sale.totalPrice.toStringAsFixed(2)}',
-                      style: AppTheme.heading3,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        '${sale.itemsCount} productos - ${sale.user.username}',
+                        style: AppTheme.caption,
+                      ),
+                      Text(_formatDate(sale.date), style: AppTheme.caption),
+                    ],
+                  ),
                 ),
-              ),
+                Text(
+                  '\$${sale.totalPrice.toStringAsFixed(2)}',
+                  style: AppTheme.heading3,
+                ),
+              ],
             ),
+          ),
+        ),
       ],
     );
   }
@@ -427,15 +372,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class ErrorWidget extends StatelessWidget {
+class ErrorWidgetCustom extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const ErrorWidget({
-    Key? key,
-    required this.message,
-    this.onRetry,
-  }) : super(key: key);
+  const ErrorWidgetCustom({Key? key, required this.message, this.onRetry})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -445,17 +387,13 @@ class ErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Error',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

@@ -243,10 +243,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     final outOfStock = _products.where((p) => p.isOutOfStock).length;
 
     if (lowStock == 0 && outOfStock == 0) {
-      return Row(
+      return const Row(
         children: [
           Icon(Icons.check_circle, size: 16, color: AppTheme.successColor),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
             'Stock OK',
             style: TextStyle(
@@ -262,11 +262,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     return Row(
       children: [
         if (outOfStock > 0) ...[
-          Icon(Icons.warning, size: 16, color: AppTheme.errorColor),
+          const Icon(Icons.warning, size: 16, color: AppTheme.errorColor),
           const SizedBox(width: 4),
           Text(
             '$outOfStock sin stock',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppTheme.errorColor,
               fontWeight: FontWeight.w500,
@@ -279,11 +279,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
           const SizedBox(width: 8),
         ],
         if (lowStock > 0) ...[
-          Icon(Icons.warning, size: 16, color: AppTheme.warningColor),
+          const Icon(Icons.warning, size: 16, color: AppTheme.warningColor),
           const SizedBox(width: 4),
           Text(
             '$lowStock stock bajo',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppTheme.warningColor,
               fontWeight: FontWeight.w500,
@@ -385,7 +385,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                           ),
                           child: Text(
                             product.category!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.w500,
@@ -406,7 +406,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
           const SizedBox(width: 12),
           Text(
             '\$${product.price.toStringAsFixed(2)}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryColor,

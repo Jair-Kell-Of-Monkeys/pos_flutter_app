@@ -25,12 +25,11 @@ class AppTheme {
       useMaterial3: true,
       
       // Esquema de color
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
         error: errorColor,
         surface: surfaceColor,
-        background: backgroundColor,
       ),
       
       // AppBar

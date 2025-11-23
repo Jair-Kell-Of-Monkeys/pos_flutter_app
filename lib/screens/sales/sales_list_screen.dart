@@ -188,7 +188,7 @@ class _SalesListScreenState extends State<SalesListScreen> {
                           color: AppTheme.primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.receipt_long,
                           color: AppTheme.primaryColor,
                           size: 20,

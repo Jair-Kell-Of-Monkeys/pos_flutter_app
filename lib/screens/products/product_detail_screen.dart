@@ -60,12 +60,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Detalle del Producto'),
       ),
-      body: _isLoading
+       body: _isLoading
           ? const LoadingWidget(message: 'Cargando producto...')
           : _errorMessage != null
-              ? ErrorWidget(
-                  message: _errorMessage!,
-                  onRetry: _loadProduct,
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_errorMessage!, style: AppTheme.bodyLarge),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadProduct,
+                        child: const Text('Reintentar'),
+                      ),
+                    ],
+                  ),
                 )
               : _buildProductDetail(),
     );
@@ -123,7 +132,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           
           // Descripción
           if (_product!.description != null) ...[
-            Text('Descripción', style: AppTheme.heading3),
+            const Text('Descripción', style: AppTheme.heading3),
             const SizedBox(height: 8),
             Text(
               _product!.description!,
@@ -134,7 +143,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           
           // Categoría
           if (_product!.category != null) ...[
-            Text('Categoría', style: AppTheme.heading3),
+            const Text('Categoría', style: AppTheme.heading3),
             const SizedBox(height: 8),
             Chip(
               label: Text(_product!.category!),
