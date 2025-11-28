@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:pos_flutter_app/widgets/main_scaffold.dart';
-
 import '../../config/theme.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/custom_error_widget.dart'; // << IMPORTANTE
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
 
-  const ProductDetailScreen({Key? key, required this.productId})
-    : super(key: key);
+  const ProductDetailScreen({
+    Key? key,
+    required this.productId,
+  }) : super(key: key);
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -56,26 +57,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainScaffold(
-      title: 'Detalle del Producto',
-      currentIndex: 0, // tab activo
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalle del Producto'),
+      ),
       body: _isLoading
           ? const LoadingWidget(message: 'Cargando producto...')
           : _errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_errorMessage!, style: AppTheme.bodyLarge),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _loadProduct,
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            )
-          : _buildProductDetail(),
+              ? CustomErrorWidget(
+                  message: _errorMessage!,
+                  onRetry: _loadProduct,
+                )
+              : _buildProductDetail(),
     );
   }
 
@@ -89,8 +82,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nombre del producto
-          Text(_product!.name, style: AppTheme.heading1),
+          // Nombre
+          Text(
+            _product!.name,
+            style: AppTheme.heading1,
+          ),
           const SizedBox(height: 8),
 
           // Código
@@ -102,13 +98,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Precio y Stock
+          // Precio & Stock
           Row(
             children: [
               Expanded(
                 child: _buildInfoCard(
                   'Precio',
-                  '\${_product!.price.toStringAsFixed(2)}',
+                  '\$${_product!.price.toStringAsFixed(2)}',
                   Icons.attach_money,
                   AppTheme.primaryColor,
                 ),
@@ -128,15 +124,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
           // Descripción
           if (_product!.description != null) ...[
-            const Text('Descripción', style: AppTheme.heading3),
+            Text('Descripción', style: AppTheme.heading3),
             const SizedBox(height: 8),
-            Text(_product!.description!, style: AppTheme.bodyMedium),
+            Text(
+              _product!.description!,
+              style: AppTheme.bodyMedium,
+            ),
             const SizedBox(height: 24),
           ],
 
           // Categoría
           if (_product!.category != null) ...[
-            const Text('Categoría', style: AppTheme.heading3),
+            Text('Categoría', style: AppTheme.heading3),
             const SizedBox(height: 8),
             Chip(
               label: Text(_product!.category!),
@@ -164,17 +163,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Icon(icon, color: color, size: 32),
           const SizedBox(height: 8),
-          Text(label, style: AppTheme.caption),
+          Text(
+            label,
+            style: AppTheme.caption,
+          ),
           const SizedBox(height: 4),
-          Text(value, style: AppTheme.heading2.copyWith(color: color)),
+          Text(
+            value,
+            style: AppTheme.heading2.copyWith(color: color),
+          ),
         ],
       ),
     );
   }
 
   Color _getStockColor() {
-    if (_product!.isOutOfStock) return AppTheme.errorColor;
-    if (_product!.isLowStock) return AppTheme.warningColor;
+    if (_product!.stock == 0) return AppTheme.errorColor;
+    if (_product!.stock <= 5) return AppTheme.warningColor;
     return AppTheme.successColor;
   }
 }

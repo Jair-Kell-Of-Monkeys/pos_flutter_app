@@ -6,7 +6,7 @@ import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/products/products_list_screen.dart';
 import '../screens/reports/reports_screen.dart';
 import '../screens/sales/create/create_sale_screen.dart';
-// import '../screens/products/product_detail_screen.dart';
+import '../screens/products/product_detail_screen.dart';
 import '../screens/sales/sales_list_screen.dart';
 import '../screens/scanner/scanner_screen.dart';
 
@@ -16,6 +16,7 @@ class AppRoutes {
   static const String register = '/register';
   static const String dashboard = '/dashboard';
   static const String products = '/products';
+  static const String productDetail = '/products/detail';
   static const String sales = '/sales';
   static const String createSale = '/sales/create';
   static const String reports = '/reports';
@@ -27,6 +28,11 @@ class AppRoutes {
     register: (context) => const RegisterScreen(),
     dashboard: (context) => const DashboardScreen(),
     products: (context) => const ProductsListScreen(),
+    productDetail: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final productId = args['productId'] as int;
+       return ProductDetailScreen(productId: productId);
+    },
     sales: (context) => const SalesListScreen(),
     createSale: (context) => const QuickSaleScreen(),
     reports: (context) => const ReportsScreen(),

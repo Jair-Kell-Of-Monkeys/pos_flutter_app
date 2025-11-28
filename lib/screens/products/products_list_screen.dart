@@ -4,10 +4,10 @@ import 'package:pos_flutter_app/widgets/main_scaffold.dart';
 import '../../config/theme.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
-import '../../widgets/custom_card.dart';
-import '../../widgets/empty_widget.dart';
-import '../../widgets/error_display_widget.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/custom_card.dart';
+import '../../widgets/error_display_widget.dart';
+import '../../widgets/empty_widget.dart';
 
 class ProductsListScreen extends StatefulWidget {
   const ProductsListScreen({Key? key}) : super(key: key);
@@ -19,7 +19,7 @@ class ProductsListScreen extends StatefulWidget {
 class _ProductsListScreenState extends State<ProductsListScreen> {
   final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
-
+  
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = true;
@@ -46,9 +46,9 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     try {
       final products = await _productService.getProducts();
-
+      
       if (!mounted) return;
-
+      
       setState(() {
         _products = products;
         _filteredProducts = products;
@@ -56,7 +56,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-
+      
       setState(() {
         _errorMessage = 'Error al cargar productos: $e';
         _isLoading = false;
@@ -76,15 +76,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     setState(() {
       _isSearching = true;
       _filteredProducts = _products
-          .where(
-            (product) =>
-                product.name.toLowerCase().contains(query.toLowerCase()) ||
-                product.code.toLowerCase().contains(query.toLowerCase()) ||
-                (product.category?.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ) ??
-                    false),
-          )
+          .where((product) =>
+              product.name.toLowerCase().contains(query.toLowerCase()) ||
+              product.code.toLowerCase().contains(query.toLowerCase()) ||
+              (product.category?.toLowerCase().contains(query.toLowerCase()) ?? false))
           .toList();
     });
   }
@@ -101,20 +96,20 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
     try {
       final results = await _productService.quickSearch(query);
-
+      
       if (!mounted) return;
-
+      
       setState(() {
         _filteredProducts = results;
         _isSearching = false;
       });
     } catch (e) {
       if (!mounted) return;
-
+      
       setState(() {
         _isSearching = false;
       });
-
+      
       // Fallback a búsqueda local
       _filterProducts(query);
     }
@@ -124,7 +119,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   Widget build(BuildContext context) {
     return MainScaffold(
       title: 'Productos',
-      currentIndex: 0, // tab activo
+      currentIndex: 0,
       actions: [
         IconButton(
           icon: const Icon(Icons.qr_code_scanner),
@@ -200,40 +195,44 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                     ),
                   ),
                   if (_products.isNotEmpty) ...[
-                    Row(children: [_buildStockIndicator()]),
+                    Row(
+                      children: [
+                        _buildStockIndicator(),
+                      ],
+                    ),
                   ],
                 ],
               ),
             ),
           ],
-
+          
           // Lista de productos
           Expanded(
             child: _isLoading
                 ? const LoadingWidget(message: 'Cargando productos...')
                 : _errorMessage != null
-                ? ErrorDisplayWidget(
-                    message: _errorMessage!,
-                    onRetry: _loadProducts,
-                  )
-                : _filteredProducts.isEmpty
-                ? EmptyWidget(
-                    message: _searchController.text.isNotEmpty
-                        ? 'No se encontraron productos con "${_searchController.text}"'
-                        : 'No hay productos disponibles',
-                    icon: Icons.inventory_2_outlined,
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadProducts,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _filteredProducts.length,
-                      itemBuilder: (context, index) {
-                        final product = _filteredProducts[index];
-                        return _buildProductCard(product);
-                      },
-                    ),
-                  ),
+                    ? ErrorDisplayWidget(
+                        message: _errorMessage!,
+                        onRetry: _loadProducts,
+                      )
+                    : _filteredProducts.isEmpty
+                        ? EmptyWidget(
+                            message: _searchController.text.isNotEmpty
+                                ? 'No se encontraron productos con "${_searchController.text}"'
+                                : 'No hay productos disponibles',
+                            icon: Icons.inventory_2_outlined,
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadProducts,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _filteredProducts.length,
+                              itemBuilder: (context, index) {
+                                final product = _filteredProducts[index];
+                                return _buildProductCard(product);
+                              },
+                            ),
+                          ),
           ),
         ],
       ),
@@ -245,10 +244,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     final outOfStock = _products.where((p) => p.isOutOfStock).length;
 
     if (lowStock == 0 && outOfStock == 0) {
-      return const Row(
+      return Row(
         children: [
           Icon(Icons.check_circle, size: 16, color: AppTheme.successColor),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Text(
             'Stock OK',
             style: TextStyle(
@@ -264,11 +263,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     return Row(
       children: [
         if (outOfStock > 0) ...[
-          const Icon(Icons.warning, size: 16, color: AppTheme.errorColor),
+          Icon(Icons.warning, size: 16, color: AppTheme.errorColor),
           const SizedBox(width: 4),
           Text(
             '$outOfStock sin stock',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppTheme.errorColor,
               fontWeight: FontWeight.w500,
@@ -281,11 +280,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
           const SizedBox(width: 8),
         ],
         if (lowStock > 0) ...[
-          const Icon(Icons.warning, size: 16, color: AppTheme.warningColor),
+          Icon(Icons.warning, size: 16, color: AppTheme.warningColor),
           const SizedBox(width: 4),
           Text(
             '$lowStock stock bajo',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppTheme.warningColor,
               fontWeight: FontWeight.w500,
@@ -300,7 +299,11 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
     return CustomCard(
       margin: const EdgeInsets.only(bottom: 12),
       onTap: () {
-        Navigator.pushNamed(context, '/products/detail', arguments: product.id);
+        Navigator.pushNamed(
+          context,
+          '/products/detail',
+          arguments: product.id,
+        );
       },
       child: Row(
         children: [
@@ -314,7 +317,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
             ),
           ),
           const SizedBox(width: 16),
-
+          
           // Información del producto
           Expanded(
             child: Column(
@@ -332,7 +335,10 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Código: ${product.code}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -380,7 +386,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
                           ),
                           child: Text(
                             product.category!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.w500,
@@ -396,12 +402,12 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
               ],
             ),
           ),
-
+          
           // Precio
           const SizedBox(width: 12),
           Text(
             '\$${product.price.toStringAsFixed(2)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryColor,
